@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { notification } from "antd";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import DataTable from "../Data";
@@ -7,6 +8,7 @@ import Editor from "../Editors";
 const schema = z.object({
   title: z.string().min(1, "Tiêu đề là bắt buộc"),
   content: z.string().min(10, "Nội dung ít nhất 10 ký tự"),
+  receivers: z.string().min(1, "Danh sách người nhận là bắt buộc"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -21,10 +23,26 @@ const EmailSender = () => {
     defaultValues: {
       title: "",
       content: "",
+      receivers: "",
     },
   });
   const onSubmit = (data: FormData) => {
-    console.log(data);
+    const receivers = JSON.parse(data.receivers);
+    const hasEmptyOrNull = receivers.some((row: any) =>
+      Object.values(row).some((value) => value === null || value === "")
+    );
+    if (hasEmptyOrNull) {
+      notification.error({
+        message: "Thiếu dữ liệu",
+        description:
+          "Vui lòng kiểm tra lại danh sách người nhận, không được để trống",
+      });
+      return;
+    }
+    notification.success({
+      message: "Gửi email thành công",
+      description: "Bạn đã gửi email thành công",
+    });
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -140,7 +158,7 @@ const EmailSender = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             👤Danh sách người nhận
           </h2>
-          <DataTable />
+          <DataTable control={control} name="receivers" />
         </div>
       </div>
     </form>

@@ -3,41 +3,30 @@ import { registerAllModules } from "handsontable/registry";
 import "handsontable/styles/handsontable.css";
 import "handsontable/styles/ht-theme-main.css";
 import { useRef } from "react";
+import { useController } from "react-hook-form";
 
 registerAllModules();
-
-const DataTable: React.FC = () => {
+const initialData = [
+  ["Tuan", "nhoklilom2.0@gmail.com", "Male", "20"],
+  ["Hoa", "hoanam123@gmail.com", "Female", "22"],
+  ["Nam", "namnguyen456@gmail.com", "Male", "21"],
+];
+const DataTable = ({ control, name }: any) => {
   const hotRef = useRef<any>(null);
-
-  const handleGetDataWithHeaders = () => {
-    const hot = hotRef.current.hotInstance;
-    const data = hot.getData(); // Lấy toàn bộ data
-    const colHeaders = hot.getColHeader(); // Lấy tiêu đề cột, ví dụ: ["A", "B", "C", "D"]
-
-    const rowObjects = data.map((row: any[]) => {
-      const rowObj: any = {};
-      colHeaders.forEach((header: string, index: number) => {
-        rowObj[header] = row[index];
-      });
-      return rowObj;
-    });
-
-    console.log("Danh sách hàng dạng object:", rowObjects);
-  };
+  const {
+    field: { onChange },
+    fieldState: { error },
+  } = useController({
+    name,
+    control,
+    defaultValue: "", // nên đặt default để tránh warning
+  });
 
   return (
     <div>
-      <button onClick={handleGetDataWithHeaders} style={{ marginBottom: 10 }}>
-        Lấy từng hàng dạng object
-      </button>
-
       <HotTable
         ref={hotRef}
-        data={[
-          ["Tuan", "T031", "Male", "20"],
-          ["Hoa", "H120", "Female", "22"],
-          ["Nam", "N543", "Male", "21"],
-        ]}
+        data={initialData}
         colHeaders={["A", "B", "C", "D"]} // Tiêu đề cột bạn định nghĩa ở đây
         rowHeaders={true}
         height={"auto"}
@@ -49,7 +38,23 @@ const DataTable: React.FC = () => {
         allowInsertRow={true}
         allowInsertColumn={true}
         licenseKey="non-commercial-and-evaluation"
+        afterChange={(changes, source) => {
+          if (source === "loadData") return; // bỏ qua lần đầu khởi tạo
+          const hot = hotRef.current.hotInstance;
+          const currentData = hot.getData();
+          const colHeaders = hot.getColHeader();
+
+          const rowObjects = currentData.map((row: any[]) => {
+            const rowObj: any = {};
+            colHeaders.forEach((header: string, index: number) => {
+              rowObj[header] = row[index];
+            });
+            return rowObj;
+          });
+          onChange(JSON.stringify(rowObjects));
+        }}
       />
+      {error && <p style={{ color: "red" }}>{error.message}</p>}
     </div>
   );
 };
