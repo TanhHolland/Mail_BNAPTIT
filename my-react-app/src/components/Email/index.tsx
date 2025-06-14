@@ -1,14 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { notification } from "antd";
-import { useForm } from "react-hook-form";
+import type { UploadProps } from "antd";
+import { Button, message, notification, Upload } from "antd";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import type { IEmailData } from "../../api/apiEmail";
+import { useQueryEmail } from "../../api/hooks/email";
 import DataTable from "../Data";
 import Editor from "../Editors";
 
 const schema = z.object({
+  name: z.string().min(1, "Tên là bắt buộc"),
+  email: z.string().email("Email không hợp lệ"),
   title: z.string().min(1, "Tiêu đề là bắt buộc"),
   content: z.string().min(10, "Nội dung ít nhất 10 ký tự"),
   receivers: z.string().min(1, "Danh sách người nhận là bắt buộc"),
+  attachment: z.array(z.any()).optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -21,11 +27,28 @@ const EmailSender = () => {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
+      name: "",
+      email: "",
       title: "",
       content: "",
       receivers: "",
+      attachment: [],
     },
   });
+  const { mutate, isPending } = useQueryEmail();
+  const dummyRequest = ({ file, onSuccess }: any) => {
+    setTimeout(() => {
+      onSuccess("ok");
+    }, 0);
+  };
+  const props: UploadProps = {
+    name: "file",
+    multiple: true,
+    customRequest: dummyRequest,
+    headers: {
+      authorization: "authorization-text",
+    },
+  };
   const onSubmit = (data: FormData) => {
     const receivers = JSON.parse(data.receivers);
     const hasEmptyOrNull = receivers.some((row: any) =>
@@ -39,9 +62,28 @@ const EmailSender = () => {
       });
       return;
     }
-    notification.success({
-      message: "Gửi email thành công",
-      description: "Bạn đã gửi email thành công",
+    const sendData: IEmailData = {
+      name: data.name,
+      email: data.email,
+      title: data.title,
+      content: data.content,
+      receivers: data.receivers,
+      attachment: data.attachment,
+    };
+    console.log(sendData);
+    mutate(sendData, {
+      onSuccess: () => {
+        notification.success({
+          message: "Gửi email thành công",
+          description: "Bạn đã gửi email thành công",
+        });
+      },
+      onError: () => {
+        notification.error({
+          message: "Gửi email thất bại",
+          description: "Vui lòng thử lại sau",
+        });
+      },
     });
   };
   return (
@@ -81,6 +123,7 @@ const EmailSender = () => {
                 Tên người gửi
               </label>
               <input
+                {...register("name")}
                 type="text"
                 placeholder="Nhập tên người gửi"
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
@@ -91,6 +134,7 @@ const EmailSender = () => {
                 Email người gửi
               </label>
               <input
+                {...register("email")}
                 type="email"
                 placeholder="your-email@example.com"
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
@@ -152,13 +196,56 @@ const EmailSender = () => {
             </label>
             <Editor control={control} name="content" />
           </div>
-        </div>
-        {/* Data */}
-        <div className="mt-6 bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            👤Danh sách người nhận
-          </h2>
-          <DataTable control={control} name="receivers" />
+          {/* Upload file */}
+          <div className="mt-6 bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              📎 Tệp đính kèm
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Đính kèm tệp tin vào email (tùy chọn)
+            </p>
+
+            <div className="mb-4">
+              {/* <input
+                type="file"
+                multiple
+                {...register("attachment")}
+                className="mt-1 block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+              /> */}
+              <Controller
+                name="attachment"
+                control={control}
+                render={({ field }) => (
+                  <Upload
+                    {...props}
+                    onChange={(info) => {
+                      field.onChange(info.fileList); // cập nhật vào RHF
+                      if (info.file.status === "done") {
+                        message.success(`${info.file.name} uploaded`);
+                      } else if (info.file.status === "error") {
+                        message.error(`${info.file.name} failed`);
+                      }
+                    }}
+                    fileList={field.value || []}
+                  >
+                    <Button>Click to Upload</Button>
+                  </Upload>
+                )}
+              />
+            </div>
+          </div>
+          {/* Data */}
+          <div className="mt-6 bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              👤Danh sách người nhận
+            </h2>
+            <DataTable control={control} name="receivers" />
+          </div>
         </div>
       </div>
     </form>

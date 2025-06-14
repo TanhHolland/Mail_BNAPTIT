@@ -6,11 +6,7 @@ import { useRef } from "react";
 import { useController } from "react-hook-form";
 
 registerAllModules();
-const initialData = [
-  ["Tuan", "nhoklilom2.0@gmail.com", "Male", "20"],
-  ["Hoa", "hoanam123@gmail.com", "Female", "22"],
-  ["Nam", "namnguyen456@gmail.com", "Male", "21"],
-];
+const initialData = [["xunuvotinh1903@gmail.com", "Xu nu vo tinh"]];
 const DataTable = ({ control, name }: any) => {
   const hotRef = useRef<any>(null);
   const {
