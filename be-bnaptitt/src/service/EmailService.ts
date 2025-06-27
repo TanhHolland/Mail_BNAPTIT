@@ -1,4 +1,6 @@
+import mongoose from 'mongoose';
 import Email from '../models/Email';
+import File from '../models/File';
 import { transporter } from '../repository/transporter';
 
 export class EmailService {
@@ -13,17 +15,29 @@ export class EmailService {
     email: string,
     title: string,
     content: string,
-    receivers: Record<string, any>[]
+    receivers: string,
+    files: Express.Multer.File[]
   ): Promise<{ success: Record<string, any>[]; failed: { receiver: any; error: any }[] }> {
     const success: Record<string, any>[] = [];
     const failed: { receiver: any; error: any }[] = [];
 
     try {
+      const receiversConvert: Record<string, any>[] = JSON.parse(receivers);
       if (!title || !content || !receivers || receivers.length === 0) {
         throw new Error('Thiếu dữ liệu');
       }
+      const fileIds: mongoose.Types.ObjectId[] = [];
 
-      for (const receiver of receivers) {
+      for (const file of files) {
+        const newFile = new File({
+          fileName: file.originalname,
+          path: file.path,
+          contentType: file.mimetype,
+        });
+        await newFile.save();
+        fileIds.push(newFile._id);
+      }
+      for (const receiver of receiversConvert) {
         try {
           const html = this.renderTemplate(content, receiver);
           const emailReceiver = receiver['A']; // Nếu field email không tên là 'email'
@@ -31,20 +45,28 @@ export class EmailService {
           if (!emailReceiver) {
             throw new Error('Không có địa chỉ email');
           }
-
+          // logic send mail
           await transporter.sendMail({
             from: `${name} <${email}>`,
             to: emailReceiver,
             subject: title,
             html: html,
+            attachments: files.map((file) => ({
+              filename: file.originalname,
+              path: file.path, // chính là URL từ Cloudinary
+              contentType: file.mimetype,
+            })),
           });
 
+          // save mail
           const newEmail = new Email({
             name,
             email,
+            toEmail: emailReceiver,
             title,
             content: html,
-            receivers,
+            receiver,
+            attachments: fileIds,
           });
 
           await newEmail.save();

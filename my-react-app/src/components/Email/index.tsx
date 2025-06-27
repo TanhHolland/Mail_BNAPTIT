@@ -7,7 +7,6 @@ import type { IEmailData } from "../../api/apiEmail";
 import { useQueryEmail } from "../../api/hooks/email";
 import DataTable from "../Data";
 import Editor from "../Editors";
-
 const schema = z.object({
   name: z.string().min(1, "Tên là bắt buộc"),
   email: z.string().email("Email không hợp lệ"),
@@ -16,6 +15,36 @@ const schema = z.object({
   receivers: z.string().min(1, "Danh sách người nhận là bắt buộc"),
   attachment: z.array(z.any()).optional(),
 });
+const allowedMimeTypes = [
+  // Ảnh
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  // Tài liệu
+  "application/pdf",
+  // "application/msword",
+  // "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  // "application/vnd.ms-excel",
+  // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  // "application/vnd.ms-powerpoint",
+  // "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  // "text/plain",
+  // "text/csv",
+  // File nén
+  "application/zip",
+  "application/x-rar-compressed",
+  "application/x-7z-compressed",
+  // Video
+  "video/mp4",
+  "video/quicktime",
+  "video/x-msvideo",
+  "video/webm",
+  // Âm thanh
+  // "audio/mpeg",
+  // "audio/wav",
+];
 
 type FormData = z.infer<typeof schema>;
 const EmailSender = () => {
@@ -35,7 +64,13 @@ const EmailSender = () => {
       attachment: [],
     },
   });
-  const { mutate, isPending } = useQueryEmail();
+  const {
+    mutate,
+    data: resData,
+    isPending,
+    isError,
+    isSuccess,
+  } = useQueryEmail();
   const dummyRequest = ({ file, onSuccess }: any) => {
     setTimeout(() => {
       onSuccess("ok");
@@ -48,6 +83,7 @@ const EmailSender = () => {
     headers: {
       authorization: "authorization-text",
     },
+    accept: allowedMimeTypes.join(","),
   };
   const onSubmit = (data: FormData) => {
     const receivers = JSON.parse(data.receivers);
@@ -73,6 +109,7 @@ const EmailSender = () => {
     console.log(sendData);
     mutate(sendData, {
       onSuccess: () => {
+        console.log(resData);
         notification.success({
           message: "Gửi email thành công",
           description: "Bạn đã gửi email thành công",
@@ -141,26 +178,22 @@ const EmailSender = () => {
               />
             </div>
           </div>
-
-          {/* Thống kê */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Thống kê
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Tổng quan về chiến dịch email
+          <div>
+            <img
+              src="https://i.pinimg.com/originals/15/46/2e/15462ed447e25356837b32a7e22e538f.gif"
+              alt="Status"
+              style={{ width: "200px", height: "200px", borderRadius: "20px" }}
+            />
+            <p
+              style={{
+                marginTop: "10px",
+                fontSize: "18px",
+                fontWeight: "500",
+                color: "black",
+              }}
+            >
+              hihi
             </p>
-
-            <div className="flex space-x-4">
-              <div className="bg-blue-100 text-blue-700 text-center p-4 rounded-md w-1/2">
-                <div className="text-2xl font-bold">0</div>
-                <div className="text-sm">Tổng người nhận</div>
-              </div>
-              <div className="bg-green-100 text-green-700 text-center p-4 rounded-md w-1/2">
-                <div className="text-2xl font-bold">0</div>
-                <div className="text-sm">Đã gửi thành công</div>
-              </div>
-            </div>
           </div>
         </div>
 
