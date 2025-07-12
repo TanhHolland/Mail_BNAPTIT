@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./be-bnaptitt
+      dockerfile: dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./be-bnaptitt:/app
+  frontend:
+    build:
+      context: ./my-react-app
+      dockerfile: dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./my-react-app:/app
