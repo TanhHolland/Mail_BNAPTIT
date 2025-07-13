@@ -1,6 +1,6 @@
 import type { UploadFile } from "antd";
 const path = {
-  apiEmail: `${process.env.APP_URL}/api/v1/email`,
+  apiEmail: `${import.meta.env.VITE_APP_URL}/api/v1/email`,
 };
 export interface IEmailData {
   name: string;
