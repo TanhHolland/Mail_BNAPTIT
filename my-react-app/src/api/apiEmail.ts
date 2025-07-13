@@ -1,6 +1,6 @@
 import type { UploadFile } from "antd";
 const path = {
-  apiEmail: "http://localhost:8080/api/v1/email",
+  apiEmail: `${process.env.APP_URL}/api/v1/email`,
 };
 export interface IEmailData {
   name: string;
