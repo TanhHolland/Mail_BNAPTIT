@@ -1,6 +1,6 @@
 import express from 'express';
-import { EmailController } from '../controllers/EmailController';
-import cloudinary from '../middleware/cloudinaryUpload';
+import { EmailController } from '@/controllers/EmailController';
+import cloudinary from '@/middleware/cloudinaryUpload';
 
 const router = express.Router();
 const emailController = new EmailController();

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import Email from '../models/Email';
-import File from '../models/File';
-import { transporter } from '../repository/transporter';
+import Email from '@/models/Email';
+import File from '@/models/File';
+import { transporter } from '@/repository/transporter';
 
 export class EmailService {
   public renderTemplate(template: string, data: Record<string, any>): string {
