@@ -34,7 +34,7 @@ const DataTable = ({ control, name }: any) => {
         allowInsertRow={true}
         allowInsertColumn={true}
         licenseKey="non-commercial-and-evaluation"
-        afterChange={(changes, source) => {
+        afterChange={(_changes, source): any => {
           if (source === "loadData") return; // bỏ qua lần đầu khởi tạo
           const hot = hotRef.current.hotInstance;
           const currentData = hot.getData();

@@ -64,14 +64,8 @@ const EmailSender = () => {
       attachment: [],
     },
   });
-  const {
-    mutate,
-    data: resData,
-    isPending,
-    isError,
-    isSuccess,
-  } = useQueryEmail();
-  const dummyRequest = ({ file, onSuccess }: any) => {
+  const { mutate, data: resData } = useQueryEmail();
+  const dummyRequest = ({ onSuccess }: any) => {
     setTimeout(() => {
       onSuccess("ok");
     }, 0);

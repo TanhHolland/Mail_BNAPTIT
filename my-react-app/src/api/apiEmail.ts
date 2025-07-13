@@ -1,3 +1,4 @@
+import type { UploadFile } from "antd";
 const path = {
   apiEmail: "http://localhost:8080/api/v1/email",
 };
@@ -7,7 +8,7 @@ export interface IEmailData {
   title: string;
   content: string;
   receivers: string;
-  attachment: any[] | undefined;
+  attachment: UploadFile[] | undefined;
 }
 export function sendEmail(data: IEmailData) {
   const form = new FormData();
@@ -17,7 +18,7 @@ export function sendEmail(data: IEmailData) {
   form.append("content", data.content);
   form.append("receivers", data.receivers);
   if (data.attachment && data.attachment.length > 0) {
-    data.attachment.forEach((file: any) => {
+    data.attachment.forEach((file: UploadFile) => {
       if (file.originFileObj) {
         form.append("attachment", file.originFileObj);
       }
